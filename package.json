@@ -1,0 +1,26 @@
+{
+  "name": "@jnode/request",
+  "version": "1.0.0",
+  "description": "Simple HTTP(s) package for Node.js.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Hello, HTTP.\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/japple-jnode/request.git"
+  },
+  "keywords": [
+    "JustNode",
+    "HTTP",
+    "Web",
+    "Request",
+    "JustApple"
+  ],
+  "author": "JustApple <apple@justapple.tw>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/japple-jnode/request/issues"
+  },
+  "homepage": "https://github.com/japple-jnode/request#readme"
+}
