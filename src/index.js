@@ -7,14 +7,21 @@ Simple HTTP(s) package for Node.js.
 by JustNode Dev Team / JustApple
 */
 
+//load node packages
+const http = require('http');
+const https = require('https');
+
 //https request in async/await
 function request(method, url, headers = {}, body) {
 	return new Promise((resolve, reject) => {
 		//auto provide `Content-Length` header
 		headers['Content-Length'] = headers['Content-Length'] ?? (body ? Buffer.byteLength(body) : 0);
 		
+		//support http and https
+		const protocol = url.startsWith('https://') ? https : http;
+		
 		//make request
-		https.request(url, {
+		protocol.request(url, {
 			method: method,
 			headers: headers
 		}, (res) => {
