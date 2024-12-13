@@ -58,13 +58,13 @@ class RequestResponse {
 	
 	//to string
 	text(encoding) {
-		return this.body.toString(encoding);
+		return this._text ?? (this._text = this.body.toString(encoding));
 	}
 	
 	//to json
 	json(encoding) {
 		try {
-			return JSON.parse(this.body);
+			return this._json ?? (this._json = JSON.parse(this.body));
 		} catch (err) {
 			return undefined;
 		}
