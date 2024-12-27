@@ -1,6 +1,6 @@
 /*
 JustRequest
-v.1.0.0
+v.1.1.0
 
 Simple HTTP(s) package for Node.js.
 
@@ -10,6 +10,10 @@ by JustNode Dev Team / JustApple
 //load node packages
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
+const { URL } = require('url');
+const { pipeline } = require('stream/promises');
+const crypto = require('crypto');
 
 //https request in async/await
 function request(method, url, headers = {}, body) {
@@ -26,7 +30,7 @@ function request(method, url, headers = {}, body) {
 			headers: headers
 		}, (res) => {
 			let chunks = [];
-			res.on('data', (chunk) => chunks.push(chunk));
+			res.on('data', chunks.push);
 			res.on('end', () => {
 				resolve(new RequestResponse(res, Buffer.concat(chunks)));
 			});
@@ -51,6 +55,80 @@ function generateMultipartBody(parts = []) {
 	result += '------JustNodeFormBoundary--'; //end
 	
 	return result;
+}
+
+//http multipart/form-data request
+async function multipartRequest(method, url, headers, parts, options) {
+	return new Promise(async (resolve, reject) => {
+		const parsedUrl = new URL(url); //parse url
+		const isHttps = parsedUrl.protocol === 'https:'; //check protocol
+		const reqModule = isHttps ? https : http; //select module from http and https
+		
+		const boundary = `----WebKitFormBoundary${Date.now().toString(16)}${crypto.randomUUID()}`; //create a random boundary
+		headers['Content-Type'] = `multipart/form-data; boundary=${boundary}`; //set header
+		
+		//set options
+		options = {
+			method,
+			headers,
+			...options
+		};
+		
+		//make a request
+		const req = reqModule.request(url, options, (res) => {
+			//save buffers
+			let chunks = [];
+			res.on('data', chunks.push);
+			
+			res.on('end', () => {
+				resolve(new RequestResponse(res, Buffer.concat(chunks)));
+			});
+			
+			res.on('error', (err) => {
+				reject(err);
+			});
+		});
+		
+		req.on('error', (err) => {
+			reject(err);
+		});
+		
+		//send every parts
+		for (const part of parts) {
+			req.write(`--${boundary}\r\n`); //write boundary
+			
+			//write disposition
+			if (part.disposition) {
+				req.write(`Content-Disposition: ${part.disposition}\r\n`);
+			}
+			
+			//write content type
+			let contentType = part.type ?? 'application/octet-stream';
+			req.write(`Content-Type: ${contentType}\r\n`);
+			
+			//send data
+			if (part.file) { //local file, using streams
+				req.write('\r\n');
+				const fileStream = fs.createReadStream(part.file);
+				await pipeline(fileStream, req, { end: false }); //pipe stream but not end
+				req.write('\r\n');
+			} else if (part.data) { //string or buffer data
+				req.write('\r\n');
+				req.write(part.data + '\r\n');
+			} else if (part.base64) { //base64 data
+				req.write('Content-Transfer-Encoding: base64\r\n\r\n'); //using base64 encoding
+				req.write(part.base64 + '\r\n');
+			} else if (part.stream) { //any readable stream
+				req.write('\r\n');
+				await pipeline(part.stream, req, { end: false });
+				req.write('\r\n');
+			}
+		}
+		
+		//end request
+		req.write(`--${boundary}--\r\n`);
+		req.end();
+	});
 }
 
 //request response
@@ -79,4 +157,4 @@ class RequestResponse {
 }
 
 //export
-module.exports = { request, generateMultipartBody, RequestResponse };
+module.exports = { request, multipartRequest, generateMultipartBody, RequestResponse };
