@@ -13,7 +13,7 @@ npm install @jnode/request
 ### Import JustRequest
 
 ```javascript
-const { request, generateMultipartBody, RequestResponse } = require('@jnode/request');
+const { request, multipartRequest, generateMultipartBody, RequestResponse } = require('@jnode/request');
 ```
 
 ### Making a request
@@ -85,6 +85,35 @@ async function uploadFile() {
 uploadFile();
 ```
 
+### Making a multipart request
+```javascript
+const fs = require('fs');
+
+async function uploadFile() {
+  const fileStream = fs.createReadStream('./example.txt');
+  const parts = [{
+    disposition: 'form-data; name="file"; filename="example.txt"',
+    stream: fileStream
+  }, {
+      disposition: 'form-data; name="key"',
+      data: 'value'
+  }];
+  
+  const headers = {
+    'X-Custom-Header': 'custom value'
+  };
+  try {
+      const response = await multipartRequest('POST', 'https://example.com/api/upload', headers, parts);
+      console.log('Status Code:', response.statusCode);
+      console.log('Response:', response.text());
+  } catch (error) {
+      console.error('Request failed:', error);
+  }
+}
+
+uploadFile();
+```
+
 ## Functions
 
 ### `request(method, url, headers = {}, body)`
@@ -95,6 +124,24 @@ Makes an HTTP(S) request.
 -   `url`: The request URL.
 -   `headers`: An object containing request headers. Defaults to an empty object.
 -   `body`: The request body (string or Buffer).
+
+**Returns:** A Promise that resolves to a `RequestResponse` object.
+
+### `multipartRequest(method, url, headers, parts, options)`
+
+Makes an HTTP(S) multipart/form-data request.
+
+-  `method`: HTTP method (`POST`, `PUT`, etc.).
+-  `url`: The request URL.
+-  `headers`: An object containing request headers.
+-  `parts`: An array of objects, where each object represents a part of the form data.
+    - `disposition` (Optional): Content disposition.
+    - `type` (Optional): Content type of the data. Defaults to `application/octet-stream`.
+    - `data`: Data (string or Buffer) of this part.
+    - `file` (Optional): Path to a local file for streaming.
+    - `base64` (Optional): base64 encoded data string.
+    - `stream` (Optional): Any readable stream.
+- `options`: Other options.
 
 **Returns:** A Promise that resolves to a `RequestResponse` object.
 
