@@ -30,7 +30,7 @@ function request(method, url, headers = {}, body) {
 			headers: headers
 		}, (res) => {
 			let chunks = [];
-			res.on('data', chunks.push);
+			res.on('data', (chunk) => chunks.push(chunk));
 			res.on('end', () => {
 				resolve(new RequestResponse(res, Buffer.concat(chunks)));
 			});
@@ -78,7 +78,7 @@ async function multipartRequest(method, url, headers, parts, options) {
 		const req = reqModule.request(url, options, (res) => {
 			//save buffers
 			let chunks = [];
-			res.on('data', chunks.push);
+			res.on('data', (chunk) => chunks.push(chunk));
 			
 			res.on('end', () => {
 				resolve(new RequestResponse(res, Buffer.concat(chunks)));
