@@ -114,10 +114,12 @@ async function multipartRequest(method, url, headers, parts, options) {
 				req.write('\r\n');
 			} else if (part.data) { //string or buffer data
 				req.write('\r\n');
-				req.write(part.data + '\r\n');
+				req.write(part.data);
+				req.write('\r\n');
 			} else if (part.base64) { //base64 data
 				req.write('Content-Transfer-Encoding: base64\r\n\r\n'); //using base64 encoding
-				req.write(part.base64 + '\r\n');
+				req.write(part.base64);
+				req.write('\r\n');
 			} else if (part.stream) { //any readable stream
 				req.write('\r\n');
 				await pipeline(part.stream, req, { end: false });
@@ -126,7 +128,7 @@ async function multipartRequest(method, url, headers, parts, options) {
 		}
 		
 		//end request
-		req.write(`--${boundary}--\r\n`);
+		req.write(`--${boundary}--`);
 		req.end();
 	});
 }
