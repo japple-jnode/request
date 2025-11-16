@@ -1,173 +1,152 @@
-# JustRequest
+# `@jnode/request`
 
-Simple HTTP(s) package for Node.js.
+Simple HTTP(S) requesting package for Node.js.
 
 ## Installation
 
-```shell
-npm install @jnode/request
+```
+npm i @jnode/request
 ```
 
-## Usage
+## Quick start
 
-### Import JustRequest
+### Import
 
-```javascript
-const { request, multipartRequest, generateMultipartBody, RequestResponse } = require('@jnode/request');
+```js
+const { request, FormPart } = require('@jnode/request');
 ```
 
-### Making a request
+### Make a request
 
-```javascript
-async function fetchData() {
-  try {
-    const response = await request('GET', 'https://example.com/api/data');
-    console.log('Status Code:', response.statusCode);
-    console.log('Body:', response.text()); // Use response.json() if expecting a JSON response
-  } catch (error) {
-    console.error('Request failed:', error);
-  }
-}
-
-fetchData();
+```js
+request('GET', 'https://example.com/').then((res) => {
+  console.log(res.text());
+});
 ```
 
-### Sending data with the request
+### Make a `multipart/form-body` request
 
-```javascript
-async function postData() {
-  try {
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-      const body = JSON.stringify({ key: 'value' });
-      const response = await request('POST', 'https://example.com/api/post', headers, body);
-      console.log('Status Code:', response.statusCode);
-      console.log('Response:', response.text());
-  } catch (error) {
-      console.error('Request failed:', error);
-  }
-}
-
-postData();
+```js
+request('POST', 'https://example.com/', [
+  new FormPart('foo', 'bar'),
+  new FormPart('awa', 'uwu')
+]).then((res) => {
+  console.log(res.text());
+});
 ```
 
-### Generating a `multipart/form-data` body
+--------
 
-```javascript
-const fs = require('fs');
+# Reference
 
-async function uploadFile() {
-  const fileData = await fs.promises.readFile('./example.txt');
-  const parts = [{
-    disposition: 'form-data; name="file"; filename="example.txt"',
-    contentType: 'text/plain',
-    data: fileData
-  }, {
-      disposition: 'form-data; name="key"',
-      data: 'value'
-  }];
-  const body = generateMultipartBody(parts);
-  
-  const headers = {
-    'Content-Type': 'multipart/form-data; boundary=----JustNodeFormBoundary'
-  };
+## `request.request(method, url[, body, headers, options])`
 
-  try {
-      const response = await request('POST', 'https://example.com/api/upload', headers, body);
-      console.log('Status Code:', response.statusCode);
-      console.log('Response:', response.text());
-  } catch (error) {
-      console.error('Request failed:', error);
-  }
-}
+- `method` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) A string specifying the HTTP request method. **Default:** `'GET'`.
+- `url` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<URL\>](https://nodejs.org/docs/latest/api/url.html#the-whatwg-url-api) The target URL to request, support both `http` and `https`.
+- `body` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer) | [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) | [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) | [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) | [\<request.FormPart[]\>](#class-requestformpart) | [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) The request body. Using [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) will send a `application/x-www-form-urlencoded` request; using [\<request.FormPart[]\>](#class-requestformpart) or  [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) will send a `multipart/form-body` request.
+- `headers` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) An object containing request headers. `Content-Length` is automatically calculated for [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type), [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer), [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array), or [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) body. And `Content-Type` will be force replaced while sending a `multipart/form-body` request with  [\<FormPart[]\>](#class-requestformpart) or [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) body.
+- `options` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) `options` in [`http.request()`](https://nodejs.org/docs/latest/api/http.html#httprequestoptions-callback).
+- Returns: [\<request.RequestResponse\>](#class-requestrequestresponse)
 
-uploadFile();
-```
+Make a HTTP(S) request.
 
-### Making a multipart request
-```javascript
-const fs = require('fs');
+## Class: `request.FormPart`
 
-async function uploadFile() {
-  const fileStream = fs.createReadStream('./example.txt');
-  const parts = [{
-    disposition: 'form-data; name="file"; filename="example.txt"',
-    stream: fileStream
-  }, {
-      disposition: 'form-data; name="key"',
-      data: 'value'
-  }];
-  
-  const headers = {
-    'X-Custom-Header': 'custom value'
-  };
-  try {
-      const response = await multipartRequest('POST', 'https://example.com/api/upload', headers, parts);
-      console.log('Status Code:', response.statusCode);
-      console.log('Response:', response.text());
-  } catch (error) {
-      console.error('Request failed:', error);
-  }
-}
+### `new request.FormPart(name, body[, headers])`
 
-uploadFile();
-```
+- `name` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) Name of the part.
+- `body` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer) | [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) | [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) | [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) The body of the part. Using [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) will create a `application/x-www-form-urlencoded` part.
+- `headers` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) An object containing part headers. There is a special `filename` field, will be added to `Content-Disposition`.
 
-## Functions
+## Class: `request.RequestResponse`
 
-### `request(method, url, headers = {}, body)`
+### `new request.RequestResponse(res)`
 
-Makes an HTTP(S) request.
+- `res` [\<http.IncomingMessage\>](https://nodejs.org/docs/latest/api/http.html#class-httpincomingmessage) The original `node:http` response object.
 
--   `method`: HTTP method (`GET`, `POST`, `PUT`, `DELETE`, etc.).
--   `url`: The request URL.
--   `headers`: An object containing request headers. Defaults to an empty object.
--   `body`: The request body (string or Buffer).
+### `requestResponse.res`
 
-**Returns:** A Promise that resolves to a `RequestResponse` object.
+- Type: [\<http.IncomingMessage\>](https://nodejs.org/docs/latest/api/http.html#class-httpincomingmessage)
 
-### `multipartRequest(method, url, headers, parts, options)`
+### `requestResponse.statusCode`
 
-Makes an HTTP(S) multipart/form-data request.
+- Type: [\<number\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#number_type)
 
--  `method`: HTTP method (`POST`, `PUT`, etc.).
--  `url`: The request URL.
--  `headers`: An object containing request headers.
--  `parts`: An array of objects, where each object represents a part of the form data.
-    - `disposition` (Optional): Content disposition.
-    - `type` (Optional): Content type of the data. Defaults to `application/octet-stream`.
-    - `data`: Data (string or Buffer) of this part.
-    - `file` (Optional): Path to a local file for streaming.
-    - `base64` (Optional): base64 encoded data string.
-    - `stream` (Optional): Any readable stream.
-- `options`: Other options.
+The response HTTP status code.
 
-**Returns:** A Promise that resolves to a `RequestResponse` object.
+### `requestResponse.headers`
 
-### `generateMultipartBody(parts = [])`
+- Type: [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
-Generates the body for a `multipart/form-data` request.
+The response HTTP headers.
 
--   `parts`: An array of objects, where each object represents a part of the form data.
-    -   `disposition` (Optional): Content disposition.
-    -   `contentType` (Optional): Content type of the data. Defaults to `application/octet-stream`.
-    -   `data`: Data (string or Buffer) of this part.
-    -    `encoded` (Optional): If provided, the data is already base64 encoded, you may skip the default base64 encoding.
+### `requestResponse._body`
 
-**Returns:** A string representing the multipart body.
+- Type: [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer)
 
-## Class `RequestResponse`
+> **Notice**: You should avoid reading this property directly, use [`requestRespond.buffer()`](#requestrespondbuffer) instead.
 
-A class representing the response from an HTTP(S) request.
+### `requestResponse.buffer()`
 
-### Properties
+- Returns: [\<Promise\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) Fulfills with a [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer) object.
 
--   `statusCode`: The HTTP status code of the response.
--   `headers`: An object containing the response headers.
--   `body`: The raw response body (Buffer).
+Receives the body of the response stream and return as a buffer.
 
-### Methods
+### `requestResponse.text([encoding])`
 
--   `text(encoding = 'utf8')`: Returns the response body as a string with optional encoding.
--   `json()`: Attempts to parse the response body as JSON. Returns a JSON object or `undefined` if parsing fails.
+- `encoding` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The character encoding to use. **Default:** `'utf8'`.
+- Returns: [\<Promise\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) Fulfills with a string.
+
+Receives the body of the response stream and return as a string.
+
+### `requestResponse.json([encoding])`
+
+- `encoding` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The character encoding to use. **Default:** `'utf8'`.
+- Returns: [\<Promise\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) Fulfills with any of [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object), [\<Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array), [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type), [\<number\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#number_type), [\<boolean\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#boolean_type), or [\<null\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#null_type).
+
+Receives the body of the response stream and parse string as JSON.
+
+### `requestResponse.rl()`
+
+- Returns: [\<readline.Interface\>](https://nodejs.org/docs/latest/api/readline.html#class-readlineinterface)
+
+Provides an interface for reading data from response one line at a time.
+
+### `requestResponse.sse()`
+
+- Returns: [\<request.EventReceiver\>](#class-requesteventreceiver)
+
+Provides an interface for reading data from response as Server-Sent Events (SSE, `text/event-stream`).
+
+## Class: `request.EventReceiver`
+
+- Extends: [\<EventEmitter\>](https://nodejs.org/docs/latest/api/events.html#class-eventemitter)
+
+An interface for reading data from [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) as Server-Sent Events (SSE, `text/event-stream`).
+
+### `new request.EventReceiver(res)`
+
+- `res` [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) The response stream or any readable stream.
+
+### Event: `'close'`
+
+Emitted when the request has been completed.
+
+### Event: `'event'`
+
+- `event` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `data` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The full data string of this event.
+  - `event` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The event name.
+  - `id` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) The event id.
+
+### `eventReceiver.res`
+
+- Type: [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable)
+
+The response stream or any readable stream.
+
+### `eventReceiver.rl`
+
+- Type: [\<readline.Interface\>](https://nodejs.org/docs/latest/api/readline.html#class-readlineinterface)
+
+An interface for reading data from response one line at a time.
