@@ -5,7 +5,7 @@ Simple HTTP(S) requesting package for Node.js.
 ## Installation
 
 ```
-npm i @jnode/request
+npm i @jnode/request@beta
 ```
 
 ## Quick start
