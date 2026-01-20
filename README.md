@@ -150,3 +150,16 @@ The response stream or any readable stream.
 - Type: [\<readline.Interface\>](https://nodejs.org/docs/latest/api/readline.html#class-readlineinterface)
 
 An interface for reading data from response one line at a time.
+
+### `eventReceiver[Symbol.asyncIterator]()`
+
+- Returns: [\<AsyncIterator\>](https://tc39.github.io/ecma262/#sec-asynciterator-interface)
+
+Create an AsyncIterator object that iterates through each event as an object. This method allows asynchronous iteration of InterfaceConstructor objects through for await...of loops.
+
+```js
+for await (const event of eventReceiver) {
+    // Each event in the event stream will be successively available here as
+    // { data, event, id }
+}
+```
