@@ -1,6 +1,6 @@
 {
   "name": "@jnode/request",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0-beta.1",
   "description": "Simple HTTP(s) requesting package for Node.js.",
   "main": "src/index.js",
   "scripts": {

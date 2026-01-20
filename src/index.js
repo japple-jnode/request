@@ -196,6 +196,59 @@ class EventReceiver extends EventEmitter {
 		});
 
 		this.rl.on('close', () => { this.emit('close'); });
+		this.rl.on('error', (err) => {
+			this.emit('error', err);
+			this.emit('close');
+		});
+	}
+
+	// async generator support
+	[Symbol.asyncIterator]() {
+		let queue = [];
+		let done = false;
+		let resolvers = [];
+
+		// event
+		const onEvent = (event) => {
+			if (resolvers.length > 0) {
+				resolvers.shift()({ value: event, done: false });
+			} else {
+				queue.push(event);
+			}
+		};
+		this.on('event', onEvent);
+
+		// close (including error)
+		const onClose = () => {
+			done = true;
+			while (resolvers.length > 0) {
+				resolvers.shift()({ done: true });
+			}
+		};
+		this.on('close', onClose);
+
+		return {
+			next: () => {
+				return new Promise((resolve, reject) => {
+					if (queue.length > 0) {
+						resolve({ value: queue.shift(), done: false });
+					} else if (done) {
+						resolve({ done: true });
+					} else {
+						resolvers.push(resolve);
+					}
+				});
+			},
+			return: () => {
+				done = true;
+				while (resolvers.length > 0) {
+					resolvers.shift()({ done: true });
+				}
+				this.off('event', onEvent);
+				this.off('close', onClose);
+			},
+			[Symbol.asyncIterator]() { return this; }
+		}
 	}
 }
 
