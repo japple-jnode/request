@@ -139,11 +139,11 @@ class RequestResponse {
 	}
 
 	async text(encoding = 'utf8') {
-		return this['_text_' + encoding] = this['_text_' + encoding] ?? (await this.buffer()).toString(encoding);
+		return this['_text_' + encoding] ?? (this['_text_' + encoding] = (await this.buffer()).toString(encoding));
 	}
 
 	async json(encoding = 'utf8') {
-		return this['_json_' + encoding] = this['_json_' + encoding] ?? JSON.parse((await this.text(encoding)));
+		return this['_json_' + encoding] ?? (this['_json_' + encoding] = JSON.parse(await this.text(encoding)));
 	}
 
 	rl() {
