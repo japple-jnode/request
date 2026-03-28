@@ -126,27 +126,24 @@ class RequestResponse {
 	}
 
 	buffer() {
+		if (this._body) return this._body;
 		return new Promise((resolve, reject) => {
-			if (!this._body) {
-				const chunks = [];
-				this.res.on('data', (d) => { chunks.push(d); });
-				this.res.on('end', () => {
-					this._body = Buffer.concat(chunks);
-					resolve(Buffer.concat(chunks));
-				});
-				this.res.on('error', reject);
-			} else {
-				resolve(this._body);
-			}
+			const chunks = [];
+			this.res.on('data', (d) => { chunks.push(d); });
+			this.res.on('end', () => {
+				this._body = Buffer.concat(chunks);
+				resolve(Buffer.concat(chunks));
+			});
+			this.res.on('error', reject);
 		});
 	}
 
 	async text(encoding = 'utf8') {
-		return (await this.buffer()).toString(encoding);
+		return this['_text_' + encoding] = this['_text_' + encoding] ?? (await this.buffer()).toString(encoding);
 	}
 
 	async json(encoding = 'utf8') {
-		return JSON.parse((await this.text(encoding)));
+		return this['_json_' + encoding] = this['_json_' + encoding] ?? JSON.parse((await this.text(encoding)));
 	}
 
 	rl() {
