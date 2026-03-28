@@ -49,7 +49,10 @@ function request(method = 'GET', url = '', body, headers = {}, options = {}) {
 
 				// set Content-Disposition header
 				if (!req.getHeader('content-disposition') && (part.name || part.filename || part.disposition)) {
-					partHeaders['Content-Disposition'] = (part.disposition || 'form-data') + (part.name ? `; name="${part.name}"` : '') + (part.filename ? `; filename="${part.filename}"` : '');
+					part.filename = part.filename ? encodeURIComponent(part.filename) : part.filename;
+					partHeaders['Content-Disposition'] = (part.disposition || 'form-data') +
+						(part.name ? `; name="${part.name}"` : '') +
+						(part.filename ? `; filename="${part.filename}"; filename*=UTF-8''${part.filename}` : '');
 				}
 
 				// write headers and body
