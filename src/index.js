@@ -30,7 +30,7 @@ function request(method = 'GET', url = '', body, headers = {}, options = {}) {
 		});
 
 		// write headers and body
-		if (typeof body === 'string' || Buffer.isBuffer(body) || body instanceof Uint8Array) { // static body
+		if (typeof body === 'string' || body instanceof Uint8Array) { // static body
 			req.setHeader('Content-Length', Buffer.byteLength(body));
 			req.end(body);
 		} else if (body instanceof stream.Readable) { // stream
@@ -38,7 +38,7 @@ function request(method = 'GET', url = '', body, headers = {}, options = {}) {
 		} else if (Array.isArray(body)) { // multipart/form-body
 			// generate boundary
 			const boundary = `----WebKitFormBoundary${Date.now().toString(16)}${crypto.randomUUID()}`;
-			req.setHeader('Content-Type', `multipart/form-data; boundary=${boundary}`);
+			req.setHeader('Content-Type', `multipart/${options.multipart || 'form-data'}; boundary=${boundary}`);
 
 			// write every parts
 			for (const part of body) {
@@ -48,12 +48,12 @@ function request(method = 'GET', url = '', body, headers = {}, options = {}) {
 				const partHeaders = part.headers || {};
 
 				// set Content-Disposition header
-				if (!partHeaders['Content-Disposition']) {
-					partHeaders['Content-Disposition'] = `form-data; name="${part.name}"${part.filename ? `; filename="${part.filename}"` : ''}`;
+				if (!req.getHeader('content-disposition') && (part.name || part.filename || part.disposition)) {
+					partHeaders['Content-Disposition'] = (part.disposition || 'form-data') + (part.name ? `; name="${part.name}"` : '') + (part.filename ? `; filename="${part.filename}"` : '');
 				}
 
 				// write headers and body
-				if (typeof part.body === 'string' || Buffer.isBuffer(part.body) || part.body instanceof Uint8Array) { // static body
+				if (typeof part.body === 'string' || part.body instanceof Uint8Array) { // static body
 					for (const [key, value] of Object.entries(partHeaders)) {
 						req.write(`${key}: ${value}\r\n`);
 					}
@@ -107,10 +107,12 @@ function request(method = 'GET', url = '', body, headers = {}, options = {}) {
 
 // form part
 class FormPart {
-	constructor(name = '', body, headers = {}) {
+	constructor(name = '', body, headers = {}, options = {}) {
 		this.name = name;
 		this.body = body;
 		this.headers = headers;
+		this.filename = options.filename;
+		this.disposition = options.disposition;
 	}
 }
 

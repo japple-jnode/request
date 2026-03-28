@@ -45,18 +45,23 @@ request('POST', 'https://example.com/', [
 - `url` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<URL\>](https://nodejs.org/docs/latest/api/url.html#the-whatwg-url-api) The target URL to request, support both `http` and `https`.
 - `body` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer) | [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) | [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) | [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) | [\<request.FormPart[]\>](#class-requestformpart) | [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) The request body. Using [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) will send a `application/x-www-form-urlencoded` request; using [\<request.FormPart[]\>](#class-requestformpart) or  [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) will send a `multipart/form-body` request.
 - `headers` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) An object containing request headers. `Content-Length` is automatically calculated for [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type), [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer), [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array), or [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) body. And `Content-Type` will be force replaced while sending a `multipart/form-body` request with  [\<FormPart[]\>](#class-requestformpart) or [\<Object[]\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) body.
-- `options` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) `options` in [`http.request()`](https://nodejs.org/docs/latest/api/http.html#httprequestoptions-callback).
+- `options` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `multipart` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) Multipart type. **Default**: `'form-body'`.
+  - `options` in [`http.request()`](https://nodejs.org/docs/latest/api/http.html#httprequestoptions-callback).
 - Returns: [\<request.RequestResponse\>](#class-requestrequestresponse)
 
 Make a HTTP(S) request.
 
 ## Class: `request.FormPart`
 
-### `new request.FormPart(name, body[, headers])`
+### `new request.FormPart(name, body[, headers, options])`
 
 - `name` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) Name of the part.
 - `body` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) | [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer) | [\<Uint8Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) | [\<stream.Readable\>](https://nodejs.org/docs/latest/api/stream.html#class-streamreadable) | [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) The body of the part. Using [\<URLSearchParams\>](https://nodejs.org/docs/latest/api/url.html#class-urlsearchparams) will create a `application/x-www-form-urlencoded` part.
 - `headers` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) An object containing part headers. There is a special `filename` field, will be added to `Content-Disposition`.
+- `options` [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `filename` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) File name.
+  - `disposition` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type) Part disposition. **Default**: `'form-data'`.
 
 ## Class: `request.RequestResponse`
 
@@ -84,7 +89,7 @@ The response HTTP headers.
 
 - Type: [\<Buffer\>](https://nodejs.org/docs/latest/api/buffer.html#class-buffer)
 
-> **Notice**: You should avoid reading this property directly, use [`requestRespond.buffer()`](#requestrespondbuffer) instead.
+> **Notice**: You should avoid reading this property directly, use [`requestRespond.buffer()`](#requestresponsebuffer) instead.
 
 ### `requestResponse.buffer()`
 
