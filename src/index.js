@@ -226,6 +226,7 @@ class EventReceiver extends EventEmitter {
 			while (resolvers.length > 0) {
 				resolvers.shift()({ done: true });
 			}
+			this.off('event', onEvent);
 		};
 		this.on('close', onClose);
 
@@ -246,8 +247,23 @@ class EventReceiver extends EventEmitter {
 				while (resolvers.length > 0) {
 					resolvers.shift()({ done: true });
 				}
+
 				this.off('event', onEvent);
 				this.off('close', onClose);
+				this.rl.close();
+
+				return Promise.resolve({ value: undefined, done: true });
+			},
+			throw: (err) => {
+				done = true;
+				while (resolvers.length > 0) {
+					resolvers.shift()({ done: true });
+				}
+				this.off('event', onEvent);
+				this.off('close', onClose);
+				this.rl.close();
+
+				return Promise.reject(err);
 			},
 			[Symbol.asyncIterator]() { return this; }
 		}
